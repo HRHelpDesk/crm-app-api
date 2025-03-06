@@ -110,50 +110,29 @@
  *       500:
  *         description: Server error
  */
-
 /**
  * @swagger
  * /auth/login:
  *   post:
- *     summary: Logs in the user
- *     description: Authenticates the user with email and password.
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - email
+ *               - password
  *             properties:
  *               email:
  *                 type: string
- *                 description: User's email address
- *                 example: "user@example.com"
  *               password:
  *                 type: string
- *                 description: User's password
- *                 example: "password123"
- *     responses:
- *       200:
- *         description: Login successful
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 token:
- *                   type: string
- *                   description: JWT token for authenticated sessions
- *                 message:
- *                   type: string
- *                   example: "Login successful"
- *                 RADSubscriberGUID:
- *                   type: string
- *                   description: Unique CRM account identifier
- *                   example: "550e8400-e29b-41d4-a716-446655440000"
- *       401:
- *         description: Unauthorized - Invalid email or password
- *       500:
- *         description: Server error
+ *               APPEnum:
+ *                 type: string
+ *                 description: Optional application identifier
+ *                 example: "PoolIQ"
+ *                 nullable: true
  */
 
 /**
@@ -396,7 +375,7 @@ const database = cosmosClient.database(process.env.COSMOS_DATABASE);
 const container = database.container(process.env.COSMOS_CONTAINER);
 
 router.post('/login', async (req, res) => {
-  let { email, password } = req.body;
+  let { email, password, APPEnum } = req.body;
   console.log('Original Email:', email);
 
   try {
@@ -425,13 +404,13 @@ router.post('/login', async (req, res) => {
       {
         userId: user.id,
         email: user.email,
-        RADSubscriberGUID: user.RADSubscriberGUID 
+        RADSubscriberGUID: user.RADSubscriberGUID,
+        AppEnum: APPEnum 
       },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
 
-    console.log({ token, message: 'Login successful', RADSubscriberGUID: user.RADSubscriberGUID });
     res.status(200).json({ 
       token, 
       message: 'Login successful',
