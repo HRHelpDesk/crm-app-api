@@ -110,10 +110,13 @@
  *       500:
  *         description: Server error
  */
+
 /**
  * @swagger
  * /auth/login:
  *   post:
+ *     summary: Logs in the user
+ *     description: Authenticates the user with email and password, optionally including an application identifier.
  *     requestBody:
  *       required: true
  *       content:
@@ -126,13 +129,61 @@
  *             properties:
  *               email:
  *                 type: string
+ *                 description: User's email address (case-insensitive)
+ *                 example: "user@example.com"
  *               password:
  *                 type: string
+ *                 description: User's password
+ *                 example: "password123"
  *               APPEnum:
  *                 type: string
  *                 description: Optional application identifier
  *                 example: "PoolIQ"
  *                 nullable: true
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: JWT token for authenticated sessions
+ *                   example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *                 message:
+ *                   type: string
+ *                   example: "Login successful"
+ *                 RADSubscriberGUID:
+ *                   type: string
+ *                   description: Unique CRM account identifier
+ *                   example: "550e8400-e29b-41d4-a716-446655440000"
+ *                 APPEnum:
+ *                   type: string
+ *                   description: Application identifier provided in the request, if any
+ *                   example: "PoolIQ"
+ *                   nullable: true
+ *       401:
+ *         description: Unauthorized - Invalid email or password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Invalid email or password"
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Server error"
  */
 
 /**
@@ -405,7 +456,7 @@ router.post('/login', async (req, res) => {
         userId: user.id,
         email: user.email,
         RADSubscriberGUID: user.RADSubscriberGUID,
-        AppEnum: APPEnum 
+        
       },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
@@ -414,7 +465,8 @@ router.post('/login', async (req, res) => {
     res.status(200).json({ 
       token, 
       message: 'Login successful',
-      RADSubscriberGUID: user.RADSubscriberGUID 
+      RADSubscriberGUID: user.RADSubscriberGUID,
+      AppEnum: APPEnum 
     });
   } catch (error) {
     console.error('Login error:', error);
