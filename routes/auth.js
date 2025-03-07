@@ -116,7 +116,7 @@
  * /auth/login:
  *   post:
  *     summary: Logs in the user
- *     description: Authenticates the user with email and password, optionally including an application identifier.
+ *     description: Authenticates the user with email and password, returning a JWT token and user details including the stored application identifier.
  *     requestBody:
  *       required: true
  *       content:
@@ -135,11 +135,6 @@
  *                 type: string
  *                 description: User's password
  *                 example: "password123"
- *               APPEnum:
- *                 type: string
- *                 description: Optional application identifier
- *                 example: "PoolIQ"
- *                 nullable: true
  *     responses:
  *       200:
  *         description: Login successful
@@ -161,7 +156,7 @@
  *                   example: "550e8400-e29b-41d4-a716-446655440000"
  *                 APPEnum:
  *                   type: string
- *                   description: Application identifier provided in the request, if any
+ *                   description: Application identifier stored for the user, if any
  *                   example: "PoolIQ"
  *                   nullable: true
  *       401:
@@ -454,7 +449,7 @@ const database = cosmosClient.database(process.env.COSMOS_DATABASE);
 const container = database.container(process.env.COSMOS_CONTAINER);
 
 router.post('/login', async (req, res) => {
-  let { email, password, APPEnum } = req.body;
+  let { email, password } = req.body;
   console.log('Original Email:', email);
 
   try {
@@ -494,7 +489,7 @@ router.post('/login', async (req, res) => {
       token, 
       message: 'Login successful',
       RADSubscriberGUID: user.RADSubscriberGUID,
-      AppEnum: APPEnum 
+      APPEnum: user.AppEnum
     });
   } catch (error) {
     console.error('Login error:', error);
