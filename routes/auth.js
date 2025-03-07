@@ -287,7 +287,7 @@
  * /auth/create-user:
  *   post:
  *     summary: Creates a user account for testing
- *     description: Creates a new user account with minimal required information for testing purposes. All fields except firstName, lastName, email, and password are optional.
+ *     description: Creates a new user account with minimal required information for testing purposes. All fields except firstName, lastName, email, password, and AppEnum are optional.
  *     requestBody:
  *       required: true
  *       content:
@@ -299,6 +299,7 @@
  *               - lastName
  *               - email
  *               - password
+ *               - AppEnum
  *             properties:
  *               firstName:
  *                 type: string
@@ -343,6 +344,11 @@
  *               membership:
  *                 type: string
  *                 example: "Silver"
+ *                 nullable: true
+ *               AppEnum:
+ *                 type: string
+ *                 description: Optional application identifier
+ *                 example: "PoolIQ"
  *                 nullable: true
  *     responses:
  *       201:
@@ -400,15 +406,37 @@
  *                       type: string
  *                       example: "Silver"
  *                       nullable: true
+ *                     AppEnum:
+ *                       type: string
+ *                       description: Application identifier provided in the request
+ *                       example: "PoolIQ"
+ *                       nullable: true
  *                     RADSubscriberGUID:
  *                       type: string
  *                       description: Unique CRM account identifier
  *                       example: "550e8400-e29b-41d4-a716-446655440000"
  *       400:
  *         description: Bad Request - Missing required fields or user with this email already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "First name, last name, email, password, and AppEnum are required"
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Failed to create user"
  */
+
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
@@ -653,12 +681,13 @@ router.post('/create-user', async (req, res) => {
     state,       
     zip,         
     phone,       
-    membership 
+    membership,
+    AppEnum
   } = req.body;
 
   // Required Fields
-  if (!firstName || !lastName || !email || !password) {
-    return res.status(400).json({ message: 'First name, last name, email, and password are required' });
+  if (!firstName || !lastName || !email || !password || AppEnum) {
+    return res.status(400).json({ message: 'First name, last name, email, and password, and AppEnum are required' });
   }
 
   try {
@@ -692,6 +721,7 @@ router.post('/create-user', async (req, res) => {
       ...(phone && { phone }),
       ...(membership && { membership }),
       RADSubscriberGUID: RADSubscriberGUID,
+      AppEnum: AppEnum,
       createdAt: new Date(),
     });
 
