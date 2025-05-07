@@ -479,17 +479,28 @@ router.post('/login', async (req, res) => {
         userId: user.id,
         email: user.email,
         RADSubscriberGUID: user.RADSubscriberGUID,
-        
       },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
-
-    res.status(200).json({ 
-      token, 
+    console.log({
+      token,
       message: 'Login successful',
       RADSubscriberGUID: user.RADSubscriberGUID,
-      APPEnum: user.AppEnum
+      APPEnum: user.AppEnum,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+    });
+
+    res.status(200).json({
+      token,
+      message: 'Login successful',
+      RADSubscriberGUID: user.RADSubscriberGUID,
+      APPEnum: user.AppEnum,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
     });
   } catch (error) {
     console.error('Login error:', error);
